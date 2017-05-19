@@ -40,7 +40,7 @@ class LearningAgent(Agent):
         # Update additional class parameters as needed
         # If 'testing' is True, set epsilon and alpha to 0
         self.epsilon = self.epsilon - 0.0025
-        if self.env.trial_data["testing"]:
+        if self.testing:
             self.epsilon = 0.0
             self.alpha = 0.0
         return None
@@ -89,11 +89,11 @@ class LearningAgent(Agent):
         # When learning, check if the 'state' is not in the Q-table
         # If it is not, create a new dictionary for that state
         #   Then, for each action available, set the initial Q-value to 0.0
-        key = self.state_key(state)
-        if key not in self.Q:
-            self.Q[key] = {"none":0.0, "forward":0.0, "left":0.0, "right":0.0}
+        if self.learning:
+            key = self.state_key(state)
+            if key not in self.Q:
+                self.Q[key] = {"none":0.0, "forward":0.0, "left":0.0, "right":0.0}
         return
-
 
     def choose_action(self, state):
         """ The choose_action function is called when the agent is asked to choose
@@ -116,10 +116,15 @@ class LearningAgent(Agent):
         else:
             key = self.state_key(state)
             largest = -1000000000.0
+            possible = []
             for k, v in self.Q[key].iteritems():
+                if v == largest:
+                    possible.append(self.unwrap_none(k))
                 if v > largest:
                     largest = v
-                    action = self.unwrap_none(k)
+                    possible = []
+                    possible.append(self.unwrap_none(k))
+            action = random.choice(possible)
         return action
 
     def learn(self, state, action, reward):
@@ -132,10 +137,11 @@ class LearningAgent(Agent):
         ###########
         # When learning, implement the value iteration update rule
         #   Use only the learning rate 'alpha' (do not use the discount factor 'gamma')
-        key = self.state_key(state)
-        action_key = self.wrap_none(action)
-        q_old = self.Q[key][action_key]
-        self.Q[key][action_key] = q_old + (self.alpha * reward)
+        if self.learning:
+            key = self.state_key(state)
+            action_key = self.wrap_none(action)
+            q_old = self.Q[key][action_key]
+            self.Q[key][action_key] = q_old + self.alpha * (reward - q_old)
         return
 
 
