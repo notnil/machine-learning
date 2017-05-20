@@ -39,8 +39,9 @@ class LearningAgent(Agent):
         # Update epsilon using a decay function of your choice
         # Update additional class parameters as needed
         # If 'testing' is True, set epsilon and alpha to 0
-        self.epsilon = self.epsilon - 0.0025
-        if self.testing:
+        self.epsilon = self.epsilon - 0.001
+        # the first reviewer said I should use "self.testing" instead of "self.env.trial_data["testing"]" but it throws an error
+        if self.env.trial_data["testing"]:
             self.epsilon = 0.0
             self.alpha = 0.0
         return None
@@ -89,6 +90,7 @@ class LearningAgent(Agent):
         # When learning, check if the 'state' is not in the Q-table
         # If it is not, create a new dictionary for that state
         #   Then, for each action available, set the initial Q-value to 0.0
+        
         if self.learning:
             key = self.state_key(state)
             if key not in self.Q:
@@ -141,7 +143,7 @@ class LearningAgent(Agent):
             key = self.state_key(state)
             action_key = self.wrap_none(action)
             q_old = self.Q[key][action_key]
-            self.Q[key][action_key] = q_old + self.alpha * (reward - q_old)
+            self.Q[key][action_key] = q_old + (self.alpha * (reward - q_old))
         return
 
 
@@ -161,9 +163,8 @@ class LearningAgent(Agent):
     def state_key(self, state):
         waypoint, inputs = state
         left = self.wrap_none(inputs["left"])
-        right = self.wrap_none(inputs["right"])
         oncoming = self.wrap_none(inputs["oncoming"])
-        return waypoint + "-" + inputs["light"] + "-" + left + "-" + right + "-" + oncoming
+        return waypoint + "-" + inputs["light"] + "-" + left + "-" + oncoming
 
     def wrap_none(self, s):
         if s == None:
@@ -215,7 +216,7 @@ def run():
     # Flags:
     #   tolerance  - epsilon tolerance before beginning testing, default is 0.05 
     #   n_test     - discrete number of testing trials to perform, default is 0
-    sim.run(n_test=20)
+    sim.run(n_test=30, tolerance=0.01)
 
 
 if __name__ == '__main__':

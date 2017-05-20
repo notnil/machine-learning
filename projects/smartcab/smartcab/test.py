@@ -2,7 +2,7 @@ import random
 
 if __name__ == '__main__':
     m = {}
-    total = 384
+    total = 96
     for i in range(total):
         m[i] = True
     count = 0
